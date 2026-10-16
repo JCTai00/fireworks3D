@@ -10,6 +10,8 @@ html,body{height:100%;margin:0;background:var(--bg);overflow:hidden;font-family:
 svg{display:block;width:100%;height:100%;touch-action:none;cursor:grab;user-select:none}
 svg:active{cursor:grabbing}
 #grid{display:none}
+#unmute{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);padding:8px 18px;border-radius:20px;background:rgba(40,60,110,.55);border:1px solid rgba(150,190,255,.4);color:var(--fg);font-size:14px;pointer-events:none;backdrop-filter:blur(6px);animation:pl 1.6s ease-in-out infinite}
+@keyframes pl{50%{opacity:.45}}
 #hud{position:fixed;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;pointer-events:none;color:var(--fg);font-size:13px}
 #hud span{opacity:.65;width:100%;text-align:center}
 #hud button{pointer-events:auto;background:rgba(40,60,110,.45);color:var(--fg);border:1px solid rgba(150,190,255,.35);border-radius:20px;padding:6px 14px;font:inherit;cursor:pointer;backdrop-filter:blur(6px)}
@@ -34,7 +36,8 @@ svg:active{cursor:grabbing}
 </g>
 <rect id="white" width="100%" height="100%" fill="#fff" opacity="0" pointer-events="none"/>
 </svg>
-<div id="hud"><span>拖曳 360° 旋轉 · 滾輪縮放 · 點擊發射煙花 · 首次點擊畫面後啟用音效</span>
+<div id="unmute">🔊 點一下畫面任意處開啟音效</div>
+<div id="hud"><span>拖曳 360° 旋轉 · 滾輪縮放 · 點擊畫面，煙花就在點擊處綻放</span>
 <button id="bSnd">音效</button><button id="bAuto">自動旋轉</button><button id="bFin">終場大秀</button><button id="bPause">暫停</button></div>
 <script>
 const NS='http://www.w3.org/2000/svg',svg=document.getElementById('s');
@@ -44,7 +47,7 @@ let W=0,H=0,F=1;
 function rs(){W=innerWidth;H=innerHeight;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);F=Math.min(H*1.0,W*1.5)}
 addEventListener('resize',rs);rs();
 
-const cam={yaw:.35,pitch:-.12,dist:1000,tx:0,ty:220,tz:0};
+const cam={yaw:.35,pitch:-.12,dist:1450,tx:0,ty:240,tz:0};
 let cY,sY,cP,sP,PX,PY,PS;
 function setCam(){cY=Math.cos(cam.yaw);sY=Math.sin(cam.yaw);cP=Math.cos(cam.pitch);sP=Math.sin(cam.pitch)}
 function proj(x,y,z){x-=cam.tx;y-=cam.ty;z-=cam.tz;
@@ -242,7 +245,18 @@ function heartPts(){if(H3)return H3;H3=[];let g=0;
 function ROT(v,ya,ti){const c=Math.cos(ti),s=Math.sin(ti),y=v[1]*c-v[2]*s,z=v[1]*s+v[2]*c,x=v[0],cy=Math.cos(ya),sy=Math.sin(ya);return[x*cy+z*sy,y,-x*sy+z*cy]}
 function EM(x,y,z,d,sp,o){add(x,y,z,d[0],d[1],d[2],sp,o)}
 function splitP(p){for(let k=0;k<4;k++){const a=k/4*6.2832+R();add(p.x,p.y,p.z,Math.cos(a),R()*.5-.25,Math.sin(a),95,{h:p.h,s:60,li:80,life:1.1,sz:2,g:50,k:1.3,cr:.25})}}
-const KINDS=['sphere','ring','heart','heart3d','heart3d','saturn','spiral','willow','palm','double','rainbow','crackle','star','butterfly','galaxy','gyro','cube','dna','peony','crossette'];
+const KINDS=['sphere','ring','heart','heart3d','heart3d','saturn','spiral','willow','palm','double','rainbow','crackle','bear','bear','star','butterfly','galaxy','gyro','cube','dna','peony','crossette'];
+let BEAR=null;
+function bearPts(){if(BEAR)return BEAR;const o=[],FU=[30,78,58],CR=[42,60,86],PK=[340,75,76],NS=[350,60,50],BW=[330,95,66];
+ const ball=(cx,cy,cz,r,n,col,rej,cf)=>{for(let i=0;i<n;i++){const d=fib(i,n);if(rej&&rej(d))continue;const c=cf?cf(d):col;o.push([cx+d[0]*r,cy+d[1]*r,cz+d[2]*r,c[0],c[1],c[2]])}};
+ const ed=[[.36,.22,.9],[-.36,.22,.9]].map(v=>{const l=Math.hypot(v[0],v[1],v[2]);return v.map(a=>a/l)});
+ ball(0,.55,0,.52,280,FU,d=>ed.some(e=>d[0]*e[0]+d[1]*e[1]+d[2]*e[2]>.982));
+ ball(0,-.35,0,.5,230,FU,null,d=>(d[2]>.55&&Math.hypot(d[0],d[1]+.1)<.75)?CR:FU);
+ for(const s of[-1,1]){ball(s*.38,1.0,0,.17,44,FU);ball(s*.38,1.0,.1,.09,16,PK);
+  ball(s*.58,-.22,.12,.17,40,FU);ball(s*.28,-.8,.28,.2,45,FU);ball(s*.28,-.82,.47,.09,12,PK);ball(s*.14,0,.38,.1,16,BW)}
+ ball(0,.42,.46,.2,64,CR);ball(0,.5,.64,.06,12,NS);ball(0,0,.4,.06,8,BW);
+ for(let k=0;k<=8;k++){const t=k/4-1,x=t*.11,y=.33-.035*(1-t*t),z=.46+Math.sqrt(Math.max(0,.04-x*x-(y-.42)*(y-.42)));o.push([x,y,z,NS[0],NS[1],NS[2]])}
+ BEAR=o;return o}
 function explode(x,y,z,kind,h){
  const big=kind==='willow'||kind==='rainbow'||R()<.25;
  flashes.push({x,y,z,t:0,sz:big?260:170});
@@ -251,6 +265,9 @@ function explode(x,y,z,kind,h){
  const sc=big?1.25:1;
  {const vis=proj(x,y,z);boom(big,kind,vis?(PX/W-.5)*1.8:0,.12+Math.min(.5,y/700)+R()*.05)}
  switch(kind){
+ case'bear':{if(P.length>POOL-1400)P.splice(0,P.length-(POOL-1400));
+  const ya=Math.PI-cam.yaw+rr(-.5,.5),ti=rr(-.12,.12);
+  for(const q of bearPts())EM(x,y,z,ROT([q[0]*.9,q[1]*.9,q[2]*.9],ya,ti),205,{h:q[3]+rr(-3,3),s:q[4],li:q[5],life:4.2,fd:1.7,lj:.03,g:8,k:2,sz:2.4,tw:0});break}
  case'heart3d':{if(P.length>POOL-1400)P.splice(0,P.length-(POOL-1400));
   const hp=heartPts(),ya=R()*6.283,ti=rr(-.25,.25),hue=R()<.6?348:rr(300,330);
   hp.forEach((q,i)=>{EM(x,y,z,ROT([q[0]*.85,q[1]*.85,q[2]*.85],ya,ti),215,{h:hue+rr(-6,6),s:95,li:60,life:4.2,fd:1.7,lj:.03,g:8,k:2,sz:2.4,tw:0});
@@ -372,7 +389,13 @@ let down=false,lx=0,ly=0,mv=0,dt0=0;
 svg.addEventListener('pointerdown',e=>{initAudio();down=true;lx=e.clientX;ly=e.clientY;mv=0;dt0=performance.now();lastIn=T;svg.setPointerCapture(e.pointerId)});
 svg.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;mv+=Math.abs(dx)+Math.abs(dy);
  cam.yaw-=dx*.006;cam.pitch=Math.max(-1.45,Math.min(1.45,cam.pitch+dy*.005));lastIn=T});
-svg.addEventListener('pointerup',()=>{down=false;lastIn=T;if(mv<6&&performance.now()-dt0<350)launch()});
+function clickLaunch(px,py){
+ const r=svg.getBoundingClientRect(),sx=(px-r.left)*W/r.width,sy=(py-r.top)*H/r.height;
+ const dx=(sx-W/2)/F,dy=(H*.55-sy)/F,x1=cam.dist*dx,y1=cam.dist*dy;
+ const y=y1*cP,z1=-y1*sP,wx=cam.tx+x1*cY-z1*sY,wy=cam.ty+y,wz=cam.tz+x1*sY+z1*cY;
+ const lim=Math.min(1,700/Math.max(1,Math.hypot(wx,wz)));
+ launch(wx*lim,wz*lim,Math.max(180,Math.min(520,wy)))}
+svg.addEventListener('pointerup',e=>{down=false;lastIn=T;if(mv<6&&performance.now()-dt0<350)clickLaunch(e.clientX,e.clientY)});
 svg.addEventListener('wheel',e=>{e.preventDefault();cam.dist=Math.max(350,Math.min(2400,cam.dist*(1+e.deltaY*.001)));lastIn=T},{passive:false});
 function tog(b,on){b.classList.toggle('off',!on)}
 $('bAuto').onclick=e=>{auto=!auto;tog(e.target,auto)};
@@ -387,6 +410,10 @@ function loop(now){
  if(!paused){step(dt)}
  if(auto&&!down&&T-lastIn>2.5)cam.yaw+=dt*.14;
  draw();requestAnimationFrame(loop)}
+function chk(){if(ac&&ac.state==='running'){const u=$('unmute');if(u)u.style.display='none';['pointerdown','keydown','touchend','wheel','click'].forEach(e=>removeEventListener(e,unlock,true))}}
+function unlock(){initAudio();if(ac){ac.onstatechange=chk;if(ac.state!=='running')ac.resume().then(chk).catch(()=>{});chk()}}
+['pointerdown','keydown','touchend','wheel','click'].forEach(e=>addEventListener(e,unlock,true));
+try{initAudio();if(ac){ac.onstatechange=chk;chk()}}catch(e){}
 requestAnimationFrame(loop);
 </script>
 </body>
