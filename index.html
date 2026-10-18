@@ -242,7 +242,7 @@ function drawCity(){
 function add(x,y,z,dx,dy,dz,sp,o){
  if(P.length>=POOL)return;
  const l=o.life*(1+(o.lj||.15)*(R()-.5));
- P.push({x,y,z,vx:dx*sp*FS,vy:dy*sp*FS,vz:dz*sp*FS,l,ml:l,h:o.h,s:o.s??100,li:o.li??62,sz:(o.sz??2.2)*1.15,k:o.k??1.3,g:o.g??80,tw:o.tw??1,cr:o.cr||0,sc:o.sc||0,em:o.em||0,fd:o.fd||0,sd:R()*6.28})}
+ P.push({x,y,z,vx:dx*sp*FS,vy:dy*sp*FS,vz:dz*sp*FS,l,ml:l,h:o.h,s:o.s??100,li:o.li??62,sz:(o.sz??2.2)*1.15,k:o.k??1.3,g:o.g??80,tw:o.tw??1,cr:o.cr||0,sc:o.sc||0,em:o.em||0,el:o.el||.7,fd:o.fd||0,sd:R()*6.28})}
 
 function fib(i,n){const y=1-2*(i+.5)/n,r=Math.sqrt(1-y*y),a=i*2.39996;return[Math.cos(a)*r,y,Math.sin(a)*r]}
 function basis(){let a=[R()-.5,R()-.5,R()-.5],l=Math.hypot(...a);a=a.map(v=>v/l);
@@ -259,7 +259,7 @@ function heartPts(){if(H3)return H3;H3=[];let g=0;
 function ROT(v,ya,ti){const c=Math.cos(ti),s=Math.sin(ti),y=v[1]*c-v[2]*s,z=v[1]*s+v[2]*c,x=v[0],cy=Math.cos(ya),sy=Math.sin(ya);return[x*cy+z*sy,y,-x*sy+z*cy]}
 function EM(x,y,z,d,sp,o){add(x,y,z,d[0],d[1],d[2],sp,o)}
 function splitP(p){for(let k=0;k<4;k++){const a=k/4*6.2832+R();add(p.x,p.y,p.z,Math.cos(a),R()*.5-.25,Math.sin(a),95,{h:p.h,s:60,li:80,life:1.1,sz:2,g:50,k:1.3,cr:.25})}}
-const KINDS=['sphere','ring','heart','heart3d','heart3d','saturn','spiral','willow','palm','double','rainbow','crackle','chrys','chrys','kamuro','bear','bear','star','butterfly','galaxy','gyro','cube','dna','peony','crossette'];
+const KINDS=['sphere','ring','heart','heart3d','heart3d','saturn','spiral','willow','palm','double','rainbow','crackle','chrys','chrys','kamuro','spike','spike','bear','bear','star','butterfly','galaxy','gyro','cube','dna','peony','crossette'];
 let BEAR=null;
 function bearPts(){if(BEAR)return BEAR;const o=[],FU=[30,78,58],CR=[42,60,86],PK=[340,75,76],NS=[350,60,50],BW=[330,95,66];
  const ball=(cx,cy,cz,r,n,col,rej,cf)=>{for(let i=0;i<n;i++){const d=fib(i,n);if(rej&&rej(d))continue;const c=cf?cf(d):col;o.push([cx+d[0]*r,cy+d[1]*r,cz+d[2]*r,c[0],c[1],c[2]])}};
@@ -273,12 +273,19 @@ function bearPts(){if(BEAR)return BEAR;const o=[],FU=[30,78,58],CR=[42,60,86],PK
  BEAR=o;return o}
 function explode(x,y,z,kind,h){
  const big=kind==='willow'||kind==='rainbow'||R()<.25;
- flashes.push({x,y,z,t:0,sz:big?260:170});hazeA=Math.min(.4,hazeA+.008);hazeH=h||40;
+ flashes.push({x,y,z,t:0,sz:big?260:170});hazeA=Math.min(.4,hazeA+.008);hazeH=h||40;$('white').setAttribute('fill','#fff');
  
  shake=Math.min(1,shake+(big?.9:.55));whiteA=Math.min(.35,whiteA+(big?.3:.16));
  const sc=big?1.25:1;
  {const vis=proj(x,y,z);boom(big,kind,vis?(PX/W-.5)*1.8:0,.12+Math.min(.5,y/700)+R()*.05)}
  switch(kind){
+ case'spike':{if(P.length>POOL-1500)P.splice(0,P.length-(POOL-1500));
+  const red=R()<.5,fh=red?355:42;
+  $('white').setAttribute('fill',`hsl(${fh},90%,${red?48:60}%)`);whiteA=Math.min(.5,whiteA+.25);
+  const nr=76;for(let i=0;i<nr;i++)add(x,y,z,...fib(i,nr),rr(300,340)*sc,{h:42+rr(-5,5),s:80,li:76,life:rr(3.0,3.6),k:1.6,g:60,em:.4,el:.45,sz:2.4,tw:0});
+  const nc=190;for(let i=0;i<nc;i++)add(x,y,z,...fib(i,nc),rr(50,75),{h:red?18:48,s:red?95:14,li:red?64:94,life:rr(2.2,2.8),k:1.3,g:30,em:.03,sz:2.1});
+  if(red)for(let i=0;i<80;i++)add(x,y,z,...fib(i,80),150,{h:30,s:90,li:70,life:2.2,k:1.4,g:40,sz:2.2});
+  break}
  case'chrys':{const n=150;for(let i=0;i<n;i++)add(x,y,z,...fib(i,n),215*sc*rr(.95,1.05),{h:42+rr(-6,6),s:75,li:70,life:2.8,k:1.25,g:55,em:.06,sz:2.2});
   for(let i=0;i<40;i++)add(x,y,z,...fib(i,40),95,{h:h,s:90,li:70,life:2.0,sz:2.6});break}
  case'kamuro':{const n=230;for(let i=0;i<n;i++)add(x,y,z,...fib(i,n),200*sc*rr(.8,1.1),{h:38,s:70,li:72,life:4.6,k:.85,g:70,em:.05,cr:.35,sz:2.1});break}
@@ -337,7 +344,8 @@ function explode(x,y,z,kind,h){
 
 function launch(x,z,tg,kind,h){
  const t=tg??(()=>{const q=R();return q<.3?rr(420,520):q<.65?rr(560,680):rr(760,900)})();whoosh();
- rockets.push({x:x??rr(-360,360),y:0,z:z??rr(-360,360),vx:rr(-12,12),vz:rr(-12,12),vy:Math.sqrt(80*t)+rr(90,140),t,kind:kind||KINDS[R()*KINDS.length|0],h:h??R()*360})}
+ const kd=kind||KINDS[R()*KINDS.length|0],lg=kd==='spike';
+ rockets.push({x:x??rr(-360,360),y:0,z:z??rr(-360,360),vx:rr(-12,12),vz:rr(-12,12),vy:lg?Math.sqrt(40*t)+90:Math.sqrt(80*t)+rr(90,140),g:lg?20:40,lg,t,kind:kd,h:h??R()*360})}
 
 function step(dt){
  T+=dt;
@@ -348,9 +356,9 @@ function step(dt){
  if(finale>0){finT-=dt;if(finT<=0){launch(rr(-380,380),rr(-380,380),rr(420,880));finale--;finT=.1}}
  // rockets
  for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];
-  r.x+=r.vx*dt;r.y+=r.vy*dt;r.z+=r.vz*dt;r.vy-=40*dt;
-  for(let j=0;j<2;j++)add(r.x,r.y,r.z,rr(-.3,.3),-1,rr(-.3,.3),rr(30,80),{h:35,s:90,li:70,life:.55,sz:1.8,k:2,g:30,tw:0});
-  add(r.x,r.y,r.z,0,0,0,0,{h:45,s:30,li:90,life:.08,sz:3.6,g:0,tw:0});
+  r.x+=r.vx*dt;r.y+=r.vy*dt;r.z+=r.vz*dt;r.vy-=(r.g||40)*dt;
+  for(let j=0;j<(r.lg?4:2);j++)add(r.x,r.y,r.z,rr(-.3,.3),-1,rr(-.3,.3),rr(30,80),{h:r.lg?40:35,s:90,li:70,life:r.lg?1.7:.55,sz:r.lg?1.6:1.8,k:2,g:r.lg?45:30,tw:r.lg?1:0});
+  add(r.x,r.y,r.z,0,0,0,0,{h:45,s:30,li:90,life:.08,sz:r.lg?5:3.6,g:0,tw:0});
   if(r.y>=r.t||r.vy<60){explode(r.x,r.y,r.z,r.kind,r.h);rockets.splice(i,1)}}
  // particles
  for(let i=P.length-1;i>=0;i--){const p=P[i];p.l-=dt;
@@ -359,7 +367,7 @@ function step(dt){
   const d=Math.exp(-p.k*dt);p.vx*=d;p.vy=p.vy*d-p.g*dt;p.vz*=d;
   p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;
   if(p.y<0){p.y=0;p.vy*=-.2}
-  if(p.em&&P.length<POOL-300&&R()<p.em*dt*60)add(p.x,p.y,p.z,rr(-1,1),rr(-1,1),rr(-1,1),rr(10,35),{h:p.h,s:p.s,li:Math.min(95,p.li+8),life:.7,sz:1.5,g:60,k:2.5,tw:0})}
+  if(p.em&&P.length<POOL-300&&R()<p.em*dt*60)add(p.x,p.y,p.z,rr(-1,1),rr(-1,1),rr(-1,1),rr(10,35),{h:p.h,s:p.s,li:Math.min(95,p.li+8),life:p.el,sz:1.5,g:60,k:2.5,tw:0})}
  for(let i=flashes.length-1;i>=0;i--){flashes[i].t+=dt*2.2;if(flashes[i].t>=1)flashes.splice(i,1)}
  for(let i=waves.length-1;i>=0;i--){waves[i].t+=dt*1.2;if(waves[i].t>=1)waves.splice(i,1)}
  shake*=Math.exp(-5*dt);whiteA*=Math.exp(-7*dt);hazeA*=Math.exp(-.04*dt);
